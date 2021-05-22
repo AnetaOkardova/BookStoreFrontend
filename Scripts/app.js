@@ -77,13 +77,15 @@ function renderCards(url) {
         .then(function (response) {
             var cardContainer = document.getElementById("card-container");
             cardContainer.innerHTML = "";
-
+            
             if (response.data.lenth == 0) {
-                cardContainer.innerText = "There are no books in the DB at this moment";
+                cardContainer.innerHTML = "There are no books in the DB at this moment";
+            }else{
+                for (let i = 0; i < response.data.length; i++) {
+                    createCard(response.data[i]);
+                }
             }
-            for (let i = 0; i < response.data.length; i++) {
-                createCard(response.data[i]);
-            }
+            
         })
         .catch(function (error) {
             console.log(error);
