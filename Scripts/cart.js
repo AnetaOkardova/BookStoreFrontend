@@ -3,6 +3,7 @@ function initCart() {
     getAllOfferCardsFromLocalStorage();
 }
 function getAllOfferCardsFromLocalStorage() {
+    debugger;
     var cartItems = localStorageService.getAll("cartItems");
 
     var cardContainer = document.getElementById("cart-card-container");
@@ -77,7 +78,7 @@ function renderOffersTable(container, ordersArray) {
     headCol.setAttribute("colspan", "3");
 
     var tbody = document.createElement("tbody");
-
+debugger;
     ordersArray.forEach(x => {
         axios.get(`https://localhost:44380/api/books/${x}`)
             .then(function (response) {

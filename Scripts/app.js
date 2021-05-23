@@ -87,6 +87,9 @@ function getWithFilter() {
     renderCards(`https://localhost:44380/api/books?author=${authorSearchInput}&title=${titleSearchInput}`);
 }
 function renderCards(url) {
+    var loader = document.getElementById("loader");
+    loader.style.display = "block";
+    debugger;
     axios.get(url)
         .then(function (response) {
             var cardContainer = document.getElementById("card-container");
@@ -103,6 +106,9 @@ function renderCards(url) {
         })
         .catch(function (error) {
             console.log(error);
+        })
+        .finally(function(){
+            loader.style.display = "none";
         });
 }
 function addToCart(event, bookId) {
