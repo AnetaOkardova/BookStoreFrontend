@@ -3,29 +3,27 @@ function initCart() {
     getAllOfferCardsFromLocalStorage();
 }
 function getAllOfferCardsFromLocalStorage() {
-    var cartItems = [];
-    var storageData = localStorage.getItem('cartItems');
+    var cartItems = localStorageService.getAll("cartItems");
 
-    if (storageData != null) {
-        cartItems = JSON.parse(storageData);
-    }
     var cardContainer = document.getElementById("cart-card-container");
     if (cartItems.length == 0) {
-        message = "The cart is empty";
-        alert(cardContainer, message);
+        var message = "The cart is empty";
+        var statusColor = "alert-danger";
+        alert(cardContainer, message, statusColor);
     } else {
-        debugger;
         renderOffersTable(cardContainer, cartItems);
     }
 }
-function alert(container, message) {
+function alert(container, message, statusColor) {
     var alert = document.createElement("div");
     alert.classList.add("alert");
-    alert.classList.add("alert-danger");
+    alert.classList.add(statusColor);
+    alert.classList.add("text-center");
     alert.setAttribute("role", "alert");
     alert.innerText = message;
 
-    container.appendChild(alert)
+    container.setAttribute("alert", "on");
+    container.appendChild(alert);
 }
 function renderOffersBody(container, book) {
     var bodyRow = document.createElement("tr");
@@ -47,6 +45,9 @@ function renderOffersBody(container, book) {
     cardBtn.classList.add("btn");
     cardBtn.classList.add("btn-success");
     cardBtn.innerHTML = "Remove from cart";
+    cardBtn.onclick = function (e) {
+        removeFromCart(e, book.id);
+    }
 
     bodyCol1.appendChild(cardInfo);
     bodyCol2.appendChild(priceInfo);
@@ -59,7 +60,6 @@ function renderOffersBody(container, book) {
     container.appendChild(bodyRow);
 }
 function renderOffersTable(container, ordersArray) {
-    debugger;
     var table = document.createElement("table");
     table.classList.add("table");
 
@@ -69,6 +69,7 @@ function renderOffersTable(container, ordersArray) {
     var headCol = document.createElement("th");
     headCol.classList.add("col");
     headCol.classList.add("text-center");
+
     var tableTitle = document.createElement("h4");
     tableTitle.classList.add("card-title");
     tableTitle.innerText = "Cart items:";
@@ -80,9 +81,44 @@ function renderOffersTable(container, ordersArray) {
     ordersArray.forEach(x => {
         axios.get(`https://localhost:44380/api/books/${x}`)
             .then(function (response) {
-                renderOffersBody(tbody, response.data);
+                if (response.data.quantity < 1) {
+                    var bodyRow = document.createElement("tr");
+
+                    var bodyCol1 = document.createElement("th");
+                    bodyCol1.classList.add("col");
+                    bodyCol1.setAttribute("colspan", "2");
+
+
+                    var expired = document.createElement("h5");
+                    expired.classList.add("text-danger");
+                    expired.innerText = "The book " + response.data.title + " went out of stock. Refresh your cart if you want to see your updated cart items.";
+
+                    var bodyCol2 = document.createElement("td");
+                    bodyCol2.classList.add("col");
+                    var cardBtn = document.createElement("button");
+                    cardBtn.classList.add("btn");
+                    cardBtn.classList.add("btn-success");
+                    cardBtn.innerHTML = "Remove from cart";
+                    cardBtn.onclick = function (e) {
+                        removeFromCart(e, response.data.id);
+                    }
+
+                    bodyCol1.appendChild(expired);
+                    bodyCol2.appendChild(cardBtn);
+
+                    bodyRow.appendChild(bodyCol1);
+                    bodyRow.appendChild(bodyCol2);
+                    tbody.appendChild(bodyRow);
+                    localStorageService.remove("cartItems", response.data.id)
+                } else {
+                    renderOffersBody(tbody, response.data);
+                }
             })
             .catch(function (error) {
+                if (error.response.status == 400) {
+                    var cardContainer = document.getElementById("cart-card-container");
+                    alert(cardContainer, "One of the books in your cart went out of stock. Please refresh your cart.", danger)
+                }
                 console.log(error);
             });
     });
@@ -92,4 +128,66 @@ function renderOffersTable(container, ordersArray) {
     table.appendChild(tbody);
     container.appendChild(table);
 }
+function removeFromCart(event, bookId) {
+    localStorageService.remove("cartItems", bookId);
+    event.target.parentElement.parentElement.remove();
+}
+function orderBook() {
+    var fullName = document.getElementById("customerName").value;
+    var email = document.getElementById("customerEmail").value;
+    var address = document.getElementById("customerAddress").value;
+    var phone = parseInt(document.getElementById("customerPhone").value);
+
+    var bookIds = localStorageService.getAll("cartItems");
+
+    var data = {
+        fullName: fullName,
+        email: email,
+        address: address,
+        phone: phone,
+        bookIds: bookIds
+    }
+
+    if (validateForm()) {
+        axios.post("https://localhost:44380/api/orders", data)
+            .then(function (response) {
+                var cardContainer = document.getElementById("cart-card-container");
+                cardContainer.innerHTML = "";
+                localStorageService.clear("cartItems");
+
+                var orderFormContainer = document.getElementById("orderFormContainer");
+                orderFormContainer.innerHTML = "";
+
+                var message = response.data;
+                var statusColor = "alert-success";
+
+                alert(cardContainer, message, statusColor);
+
+                //redirecting:
+                //location.href = "./index.html";
+
+            })
+            .catch(function (error) {
+                console.log(error);
+                if (error.response.status == 400) {
+                    alert("There has been a change in your order. Please refresh your page.");
+                //     var cardContainer = document.getElementById("cart-card-container");
+
+                //     for (const property in error.response.data.errors) {
+
+                //         var message = error.response.data.errors[property];
+                //         alert(cardContainer, message, "danger");
+                //     }
+                };
+            });
+    } else {
+        var cardContainer = document.getElementById("cart-card-container");
+        if (!cardContainer.hasAttribute("alert")) {
+            var message = "All fields are required!";
+            var statusColor = "alert-danger";
+            alert(cardContainer, message, statusColor);
+        }
+    }
+}
+
 initCart();

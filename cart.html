@@ -41,10 +41,35 @@
 
         </div>
     </div>
+
+    <div class="container form-container col-md-6 mb-5" id="orderFormContainer">
+        <h2>Order</h2>
+        <div class="form-group">
+            <label for="customerName">Name</label>
+            <input class="form-control" id="customerName" placeholder="Enter full name." required/>
+        </div>
+        <div class="form-group"><label for="customerEmail">Email</label>
+            <input class="form-control" id="customerEmail" placeholder="Enter email." required />
+        </div>
+        <div class="form-group"><label for="customerAddress">Address</label>
+            <input class="form-control" id="customerAddress" placeholder="Enter address." required />
+        </div>
+        <div class="form-group"><label for="customerPhone">Phone</label>
+            <input type="number" class="form-control" id="customerPhone" placeholder="Enter phone number." required />
+        </div>
+        <button class="btn btn-primary" onclick="orderBook()">Order</button>
+    </div>
+
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="./Scripts/LocalStorageService.js"></script>
+    <script src="./Scripts/validator.js"></script>
+
     <script src="./Scripts/cart.js"></script>
 </body>
 

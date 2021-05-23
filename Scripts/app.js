@@ -1,7 +1,6 @@
 function initApp() {
     getAllBooksFromApi();
 }
-
 function getAllBooksFromApi() {
     renderCards('https://localhost:44380/api/books');
 }
@@ -30,10 +29,26 @@ function createCard(book) {
     var cardGenre = document.createElement("p");
     cardGenre.classList.add("card-text");
     cardGenre.innerText = "Genre: " + book.genre;
-
+    
     var cardPrice = document.createElement("p");
     cardPrice.classList.add("card-text");
     cardPrice.innerText = "Price: " + book.price;
+
+    if (book.quantity <= 3) {
+        var fewLeft = document.createElement("button");
+        fewLeft.classList.add("badge");
+        fewLeft.style.color = "black";
+        fewLeft.style.backgroundColor = "yellow";
+
+        fewLeft.innerText = 'Only ' + book.quantity + ' left!';
+        cardBody.appendChild(fewLeft);
+    }else{
+        var fewLeft = document.createElement("p");
+        fewLeft.classList.add("p-1");
+        fewLeft.innerText = null;
+        cardBody.appendChild(fewLeft);
+
+    }
 
     var cardBtn = document.createElement("button");
     cardBtn.classList.add("btn");
@@ -66,7 +81,6 @@ function createCard(book) {
     var cardContainer = document.getElementById("card-container");
     cardContainer.appendChild(col);
 }
-
 function getWithFilter() {
     var authorSearchInput = document.getElementById("authorSearchInput").value;
     var titleSearchInput = document.getElementById("titleSearchInput").value;
@@ -77,31 +91,22 @@ function renderCards(url) {
         .then(function (response) {
             var cardContainer = document.getElementById("card-container");
             cardContainer.innerHTML = "";
-            
+
             if (response.data.lenth == 0) {
                 cardContainer.innerHTML = "There are no books in the DB at this moment";
-            }else{
+            } else {
                 for (let i = 0; i < response.data.length; i++) {
                     createCard(response.data[i]);
                 }
             }
-            
+
         })
         .catch(function (error) {
             console.log(error);
         });
 }
 function addToCart(event, bookId) {
-    var cartItems = [];
-
-    var storageData = localStorage.getItem("cartItems");
-    if (storageData != null) {
-        var cartItems = JSON.parse(storageData);
-    }
-    if (cartItems.indexOf(bookId) == -1) {
-        cartItems.push(bookId);
-    }
-    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    localStorageService.add("cartItems", bookId);
 
     event.target.innerHTML = "Remove from cart";
     event.target.onclick = function (e) {
@@ -109,16 +114,7 @@ function addToCart(event, bookId) {
     };
 }
 function removeFromCart(event, bookId) {
-
-    var storageData = localStorage.getItem("cartItems");
-
-    if (storageData != null) {
-        var cartItems = JSON.parse(storageData);
-
-        cartItems = cartItems.filter(x => x != bookId);
-    }
-
-    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    localStorageService.remove("cartItems", bookId);
 
     event.target.innerHTML = "Add to cart";
     event.target.onclick = function (e) {
@@ -126,39 +122,9 @@ function removeFromCart(event, bookId) {
     };
 }
 function existsInStorage(cartItem) {
-    var exists = false;
-    var storageData = localStorage.getItem("cartItems");
-
-    if (storageData != null) {
-        var cartItems = JSON.parse(storageData);
-
-        if (cartItems.indexOf(cartItem) != -1) {
-            exists = true;
-        }
-    }
+    var exists = localStorageService.exists("cartItems", cartItem);
     return exists;
 }
-
-// function createBook() {
-//     var newBook = {
-//         title:  "New title",
-//         description: "New desc",
-//         author: "New author",
-//         genre: "New genre",
-//         quantity: 100,
-//         price: 200
-//     }
-//     axios.post('https://localhost:44380/api/books', newBook)
-//         .then(function (response) {
-//             createCard(newBook);
-
-//         })
-//         .catch(function (error) {
-//             console.log(error);
-//         });
-// }
-
-
 
 initApp();
 
